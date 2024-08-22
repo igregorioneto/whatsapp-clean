@@ -1,17 +1,21 @@
-export async function saveMessageToMongo(messageInfo: any) {
+import { Model } from 'mongoose';
+import { Message as MongoMessage } from '../../../models/message.schema';
+import winstonLogger from 'src/config/winston.config';
+
+export async function saveMessageToMongo(messageModel: Model<MongoMessage>, messageInfo: any) {
   try {
       // Verificar se a mensagem já existe no banco de dados
-      const existingMessage = await this.messageModel.findOne({
+      const existingMessage = await messageModel.findOne({
           chatId: messageInfo.chatId,
           messageId: messageInfo.messageId,
       });
       // Se a mensagem já existe, não salvar novamente
       if (existingMessage) {
-          console.log('Mensagem já existente, não será salva novamente.');
+          winstonLogger.info('Mensagem já existente, não será salva novamente.');
           return;
       }
       // Criar nova instância da mensagem
-      const newMessage = new this.messageModel({
+      const newMessage = new messageModel({
           chatId: messageInfo.chatId || 'unknown',
           messageId: messageInfo.messageId || 'unknown',
           body: messageInfo.body || '',
@@ -30,8 +34,8 @@ export async function saveMessageToMongo(messageInfo: any) {
       });
       // Salvar a nova mensagem no banco de dados
       await newMessage.save();
-      console.log('Mensagem salva com sucesso.');
+      winstonLogger.info('Mensagem salva com sucesso.');
   } catch (error) {
-      console.error('Erro ao salvar a mensagem no banco de dados:', error);
+    winstonLogger.error(`Erro ao salvar a mensagem no banco de dados: ${JSON.stringify(error)}`);
   }
 }

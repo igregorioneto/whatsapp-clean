@@ -25,7 +25,7 @@ export class WhatsappService implements OnModuleInit {
 
   async verifyNumberIntegrationIsCorrect(chatId: string) {
     const result = await this.numberIntegration.verifyNumberIntegrationIsCorrect(chatId);
-    if (!result.status) {
+    if (!result.status && result.info === 'Número vinculado ao QR Code diferente do integrado. Verifique o número e tente novamente.') {
       this.client.initializeClient();
     }
     return result;
@@ -36,11 +36,13 @@ export class WhatsappService implements OnModuleInit {
   }
 
   async getMessages(chatId: string) {
-    return await getMessages(chatId);
+    const numberIntegration = this.numberIntegration.getNumberIntegration();
+    return await getMessages(this.messageModel, numberIntegration, chatId);
   }
 
   async getAllMessages() {
-    return await getAllMessages();
+    const numberIntegration = this.numberIntegration.getNumberIntegration();
+    return await getAllMessages(this.messageModel, numberIntegration);
   }
 
   async getQrCodeImageUrl(): Promise<string | null> {

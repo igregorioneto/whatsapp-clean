@@ -1,6 +1,10 @@
-export async function getMessages(chatId: string) {
-  const messages = await this.messageModel.find({ chatId, userId: this.numberUserIntegration + '@s.whatsapp.net'}).exec();
-  console.log('Mensagens carregadas do getMessages', messages)
+import { Model } from 'mongoose';
+import { Message as MongoMessage } from '../../../models/message.schema';
+import winstonLogger from 'src/config/winston.config';
+
+export async function getMessages(messageModel: Model<MongoMessage>, numberUserIntegration: string, chatId: string) {
+  const messages = await messageModel.find({ chatId, userId: numberUserIntegration + '@s.whatsapp.net'}).exec();
+  winstonLogger.info(`Mensagens carregadas do getMessages: ${JSON.stringify(messages)}`);
   return messages.map((message, index) => ({
       id: message._id.toString(),
       message: message.body,

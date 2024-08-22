@@ -12,6 +12,7 @@ import { NumberIntegration } from './number-integration';
 export class WhatsappWebClient  {
     private client: any;
     private qrCodeImageUrl: string | null = null;
+    private isConnecting: boolean = false;
 
     constructor(
         @InjectModel('Message') private readonly messageModel: Model<MongoMessage>,
@@ -20,6 +21,9 @@ export class WhatsappWebClient  {
 
     async initializeClient() {
         try {
+            if (this.isConnecting) return;
+            this.isConnecting = true;
+
             const connect = async () => {
                 const authPath = await createAuthState();
                 const { state, saveCreds } = await useMultiFileAuthState(authPath);
@@ -33,15 +37,16 @@ export class WhatsappWebClient  {
                         const update = events['connection.update'];
                         const { connection, lastDisconnect, qr } = update;
                         if (connection === 'close') {
+                            this.numberIntegration.setNumberUserIntegration(null);
                             const shouldReconnect = (lastDisconnect.error as any)?.output?.statusCode !== DisconnectReason.loggedOut;
                             winstonLogger.info(`Connection closed due to: ${JSON.stringify(lastDisconnect.error)}`)
                             winstonLogger.info(`reconnecting: ${JSON.stringify(shouldReconnect)}`)
                             if (shouldReconnect) {
-                                connect();
+                                setTimeout(connect , 5000);
                             } else {
                                 winstonLogger.info('Logged out. Please scan the QR code again.')
                                 clearAuthState();
-                                connect();
+                                setTimeout(connect , 5000);
                             }
                         } else if (connection === 'open') {
                             winstonLogger.info('Connection opened');
@@ -52,9 +57,12 @@ export class WhatsappWebClient  {
                             this.numberIntegration.setNumberUserIntegration(number);
                             winstonLogger.info(`Numero vinculado com o QR CODE: ${JSON.stringify(number)}`)
                         } else if (qr) {
-                            this.qrCodeImageUrl = await generateQrCode(qr, this.numberIntegration.getNumberIntegration());
-                        } else if (qr && this.numberIntegration.getNumberIntegration() === null) {
-                            this.qrCodeImageUrl = await generateQrCode(qr, this.numberIntegration.getNumberIntegration());
+                            if (!this.numberIntegration.getNumberIntegration()) {
+                                this.qrCodeImageUrl = await generateQrCode(qr, null);
+                            } else {
+                                winstonLogger.info('QR Code não disponível para o usuário já logado.');
+                                this.qrCodeImageUrl = null;
+                            }
                         }
                     }
                     if (events['messages.upsert']) {
@@ -62,7 +70,7 @@ export class WhatsappWebClient  {
                         if (upsert.type === 'notify') {
                             for (const msg of upsert.messages) {
                                 if (!msg.key.fromMe) {
-                                    await saveMessageToMongo(msg);
+                                    await saveMessageToMongo(this.messageModel,msg);
                                 }
                             }
                         }
@@ -75,7 +83,7 @@ export class WhatsappWebClient  {
                                 for (const message of chat.messages) {
                                     winstonLogger.info(`Messages recebidas: ${JSON.stringify(message)}`)
                                     if (message.key && message.key.id && message.key.remoteJid) {
-                                        await saveMessageToMongo({
+                                        await saveMessageToMongo(this.messageModel,{
                                             chatId: chat.id,
                                             messageId: message.key.id,  // Identificador único da mensagem
                                             body: message.message?.conversation || '',  // Conteúdo da mensagem
@@ -103,7 +111,7 @@ export class WhatsappWebClient  {
                         for (const message of messages) {
                             //console.log('Message:', message);
                             if (message.key && message.key.id && message.key.remoteJid) {
-                                await saveMessageToMongo({
+                                await saveMessageToMongo(this.messageModel,{
                                     chatId: message.key.remoteJid,  // ID do chat (remetente)
                                     messageId: message.key.id,  // Identificador único da mensagem
                                     body: message.message?.conversation || '',  // Conteúdo da mensagem
@@ -130,12 +138,21 @@ export class WhatsappWebClient  {
                         }
                     }
                     console.log('Other events:', events);
+                    if (events['connection.update']) {
+                        const { qr } = events['connection.update'];
+                        if (!this.numberIntegration.getNumberIntegration()) {
+                            this.qrCodeImageUrl = await generateQrCode(qr, null);
+                        } else {
+                            winstonLogger.info('QR Code não disponível para o usuário já logado.');
+                            this.qrCodeImageUrl = null;
+                        }
+                    }
                     if (events['messages.upsert']) {
                         const { messages } = events['messages.upsert'];
                         for (const message of messages) {
                             // Verifique se message.key e suas propriedades estão definidas
                             if (message.key && message.key.id && message.key.remoteJid) {
-                                await saveMessageToMongo({
+                                await saveMessageToMongo(this.messageModel,{
                                     chatId: message.key.remoteJid,  // ID do chat (remetente)
                                     messageId: message.key.id,  // Identificador único da mensagem
                                     body: message.message?.conversation || '',  // Conteúdo da mensagem

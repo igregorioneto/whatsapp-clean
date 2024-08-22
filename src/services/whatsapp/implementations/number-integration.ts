@@ -6,8 +6,9 @@ export class NumberIntegration {
   private numberUserIntegration: string | null = null;
 
   async verifyNumberIntegrationIsCorrect(chatId: string) {
-    if (!chatId || this.numberUserIntegration) {
+    if (!chatId || !this.numberUserIntegration) {
       // Número não está integrado
+      this.numberUserIntegration = null;
       return {
         status: false,
         info: 'Número não integrado. Por favor, integre um número antes de verificar.'
@@ -21,6 +22,7 @@ export class NumberIntegration {
       };
     } else {
       // Número incorreto
+      this.numberUserIntegration = null;
       clearAuthState();
       return {
         status: false,

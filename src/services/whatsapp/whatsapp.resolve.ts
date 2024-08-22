@@ -10,9 +10,7 @@ export class WhatsappResolver {
   @Query(() => String, { nullable: true })
   async getQrCodeImage(): Promise<string | null> {
     try {      
-      const qrCodeImageUrl = await this.whatsappService.getQrCodeImageUrl();
-      console.log(qrCodeImageUrl)
-      return qrCodeImageUrl;
+      return await this.whatsappService.getQrCodeImageUrl();
     } catch (error) {
       console.error('Erro ao buscar QR Code:', error);
       return null;
