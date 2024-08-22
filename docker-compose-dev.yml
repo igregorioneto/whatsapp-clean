@@ -1,0 +1,22 @@
+networks:
+    app_net_dev:
+      external: false
+
+services:
+    app_mongodb_dev:
+        container_name: app_mongo_dev
+        image: mongo:latest
+        restart: unless-stopped
+        env_file: app.conf
+        networks:
+            app_net_dev:
+                aliases:
+                    - app_mongo
+        ports:
+            - 27017:27017
+        volumes:
+            - db:/sume/db/mongo/app_net_dev
+    
+volumes:
+    db:
+

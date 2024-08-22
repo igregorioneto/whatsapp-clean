@@ -1,0 +1,17 @@
+type Query {
+  getQrCodeImage: String
+  getMessages(chatId: String!): [String!]
+  getAllMessages(): JSON!
+}
+
+type Mutation {
+  sendMessage(to: String!, message: String!): String!
+  verifyNumberIntegrationIsCorrect(chatId: String): IntegrationResult!
+}
+
+type IntegrationResult {
+  status: Boolean
+  info: String
+}
+
+scalar JSON
