@@ -1,0 +1,5 @@
+DEFAULT_PASSWORD="senha"
+DEFAULT_USER="senha"
+SALT_SECRET="secret_kay"
+PORT="3000"
+MONGODB_URL="mongodb://localhost:27017/mongodb_whatsapp"
