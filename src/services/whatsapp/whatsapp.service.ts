@@ -35,14 +35,15 @@ export class WhatsappService implements OnModuleInit {
     await sendMessage(to, message);
   }
 
-  async getMessages(chatId: string) {
+  async getMessages(chatId: string, page: number = 1, limit: number = 10) {
     const numberIntegration = this.numberIntegration.getNumberIntegration();
-    return await getMessages(this.messageModel, numberIntegration, chatId);
+    return await getMessages(this.messageModel, numberIntegration, chatId, page, limit);
   }
 
-  async getAllMessages() {
+  async getAllMessages(page: number = 1, limit: number = 10) {
+    console.log('page', page, 'limit', limit);
     const numberIntegration = this.numberIntegration.getNumberIntegration();
-    return await getAllMessages(this.messageModel, numberIntegration);
+    return await getAllMessages(this.messageModel, numberIntegration, page, limit);
   }
 
   async getQrCodeImageUrl(): Promise<string | null> {

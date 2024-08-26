@@ -18,9 +18,14 @@ export class WhatsappResolver {
   }
 
   @Query(() => [GraphQLJSONObject])
-  async getMessages(@Args('chatId') chatId: string) {
+  async getMessages(
+    @Args('chatId') chatId: string,
+    @Args('page', { type: () => Number, defaultValue: 1 }) page: number,
+    @Args('limit', { type: () => Number, defaultValue: 10 }) limit: number,
+  ) {
     try {
-      return await this.whatsappService.getMessages(chatId);
+      const result = await this.whatsappService.getMessages(chatId, page, limit);
+      return result.data;
     } catch (error) {
       console.error('Erro ao buscar mensagens:', error);
       return [];
@@ -28,9 +33,13 @@ export class WhatsappResolver {
   }
 
   @Query(() => [GraphQLJSONObject])
-  async getAllMessages() {
+  async getAllMessages(
+    @Args('page', { type: () => Number, defaultValue: 1 }) page?: number, 
+    @Args('limit', { type: () => Number, defaultValue: 10 }) limit?: number
+  ) {
     try {
-      return await this.whatsappService.getAllMessages();
+      const result = await this.whatsappService.getAllMessages(page, limit);
+      return result.data;
     } catch (error) {
       console.error('Erro ao buscar todas as mensagens:', error);
       return {};
