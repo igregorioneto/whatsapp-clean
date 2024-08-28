@@ -31,7 +31,7 @@ export async function sendMessage(to: string, message: string): Promise<void> {
                       messageStatus: '',
                       lastMessageTime: '',
                       newMessagesAmount: 0,
-                      userId: this.numberUserIntegration + '@s.whatsapp.net'
+                      userId: this.numberUserIntegration
                   });
                   await newMessage.save();
               }

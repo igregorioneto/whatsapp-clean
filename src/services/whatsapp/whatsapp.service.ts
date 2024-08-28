@@ -6,27 +6,36 @@ import { InjectModel } from '@nestjs/mongoose';
 import { NumberIntegration } from './implementations/number-integration';
 import { sendMessage } from './implementations/send-message';
 import { getMessages } from './implementations/get-message-chat';
-import { getAllMessages } from './implementations/get-all-messages';
+import { GetAllMessageOptions, getAllMessages } from './implementations/get-all-messages';
+import winstonLogger from 'src/config/winston.config';
 
 @Injectable()
 export class WhatsappService implements OnModuleInit {
-  private readonly client: WhatsappWebClient;
+  private readonly clientMap: Map<string, WhatsappWebClient> = new Map();
 
   constructor(
     @InjectModel('Message') private readonly messageModel: Model<MongoMessage>,
     private readonly numberIntegration: NumberIntegration
-  ) {
-    this.client = new WhatsappWebClient(this.messageModel, this.numberIntegration);
-  }
+  ) {}
 
-  onModuleInit() {
-    this.client.initializeClient();
+  onModuleInit() { }
+
+  async createClientForUser(chatId: string): Promise<WhatsappWebClient> {
+    const existingClient = this.clientMap.get(chatId);
+    if (existingClient) {
+      return existingClient;
+    }
+    const newClient = new WhatsappWebClient(this.messageModel, this.numberIntegration);
+    await newClient.initializeClient(chatId);
+    this.clientMap.set(chatId, newClient);
+    return newClient;
   }
 
   async verifyNumberIntegrationIsCorrect(chatId: string) {
+    const client = await this.createClientForUser(chatId);
     const result = await this.numberIntegration.verifyNumberIntegrationIsCorrect(chatId);
     if (!result.status && result.info === 'Número vinculado ao QR Code diferente do integrado. Verifique o número e tente novamente.') {
-      this.client.initializeClient();
+      await client.initializeClient(chatId); // Reinicializa o client associado
     }
     return result;
   }
@@ -35,18 +44,18 @@ export class WhatsappService implements OnModuleInit {
     await sendMessage(to, message);
   }
 
-  async getMessages(chatId: string, page: number = 1, limit: number = 10) {
-    const numberIntegration = this.numberIntegration.getNumberIntegration();
+  async getMessages(numberIntegrated: string, chatId: string, page: number = 1, limit: number = 10) {
+    const numberIntegration = this.numberIntegration.getNumberIntegration(numberIntegrated);
     return await getMessages(this.messageModel, numberIntegration, chatId, page, limit);
   }
 
-  async getAllMessages(page: number = 1, limit: number = 10) {
-    console.log('page', page, 'limit', limit);
-    const numberIntegration = this.numberIntegration.getNumberIntegration();
-    return await getAllMessages(this.messageModel, numberIntegration, page, limit);
+  async getAllMessages(chatId: string, page: number = 1, limit: number = 10, options: GetAllMessageOptions = {}) {
+    const numberIntegration = this.numberIntegration.getNumberIntegration(chatId);
+    return await getAllMessages(this.messageModel, numberIntegration, page, limit, options);
   }
 
-  async getQrCodeImageUrl(): Promise<string | null> {
-    return await this.client.getQrCodeImageUrl();
+  async getQrCodeImageUrl(chatId: string): Promise<string | null> {
+    const client = await this.createClientForUser(chatId);
+    return await client.getQrCodeImageUrl(chatId);
   }
 }

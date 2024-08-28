@@ -16,6 +16,7 @@ export const MessageSchema = new Schema({
   messageStatus: { type: String, required: false },
   lastMessageTime: { type: String, required: false },
   newMessagesAmount: { type: Number, required: false },
+  profilePictureUrl: { type: String, required: false },
   userId: { type: String, required: false },
 });
 
@@ -35,5 +36,6 @@ export interface Message extends Document {
   messageStatus?: string;
   lastMessageTime?: string;
   newMessagesAmount?: number;
+  profilePictureUrl?: string;
   userId?: string;
 }
