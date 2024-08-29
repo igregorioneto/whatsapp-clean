@@ -16,9 +16,9 @@ export class WhatsappService implements OnModuleInit {
   constructor(
     @InjectModel('Message') private readonly messageModel: Model<MongoMessage>,
     private readonly numberIntegration: NumberIntegration
-  ) {}
+  ) { }
 
-  onModuleInit() { }
+  onModuleInit() {}
 
   async createClientForUser(chatId: string): Promise<WhatsappWebClient> {
     const existingClient = this.clientMap.get(chatId);
@@ -40,8 +40,13 @@ export class WhatsappService implements OnModuleInit {
     return result;
   }
 
-  async sendMessage(to: string, message: string): Promise<void> {
-    await sendMessage(to, message);
+  async sendMessage(numberIntegrated: string, to: string, message: string): Promise<void> {
+    const client = await this.createClientForUser(numberIntegrated);
+    const target = client.getClients().get(numberIntegrated);    
+    if (!target) {
+      throw new Error(`Client para ${numberIntegrated} não encontrado no mapa.`);
+    }
+    await sendMessage(target, to, message, numberIntegrated, this.messageModel);
   }
 
   async getMessages(numberIntegrated: string, chatId: string, page: number = 1, limit: number = 10) {

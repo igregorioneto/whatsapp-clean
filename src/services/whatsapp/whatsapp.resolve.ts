@@ -132,11 +132,12 @@ export class WhatsappResolver {
 
   @Mutation(() => String)
   async sendMessage(
+    @Args('numberIntegrated') numberIntegrated: string,
     @Args('to') to: string,
     @Args('message') message: string
   ): Promise<string> {
     try {
-      await this.whatsappService.sendMessage(to, message);
+      await this.whatsappService.sendMessage(numberIntegrated, to, message);
       return 'Mensagem enviada com sucesso!';
     } catch (error) {
       console.error('Erro ao enviar mensagem:', error);

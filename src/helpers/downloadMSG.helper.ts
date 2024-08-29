@@ -1,4 +1,5 @@
 import { downloadContentFromMessage } from '@whiskeysockets/baileys';
+import winstonLogger from 'src/config/winston.config';
 
 export const downloadMessage = async (msg, msgType) => {
   let buffer = Buffer.from([]);
@@ -8,7 +9,7 @@ export const downloadMessage = async (msg, msgType) => {
       buffer = Buffer.concat([buffer, chunk]);
     }
   } catch {
-    return console.log('error downloading file-message');
+    return winstonLogger.error('error downloading file-message');
   }
   return buffer.toString('base64');
 };

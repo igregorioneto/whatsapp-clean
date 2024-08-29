@@ -4,6 +4,7 @@ import * as express from 'express';
 import * as path from 'path';
 import { AppModule } from './app.module';
 import { envorimentVariables } from './env/envoriment';
+import winstonLogger from './config/winston.config';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -16,7 +17,7 @@ async function bootstrap() {
 
   const port = envorimentVariables.port;
   await app.listen(3000, () =>
-    console.log(
+    winstonLogger.info(
       `App is Running\nDocumentation available on http://localhost:${port}/graphQL`,
     ),
   );
