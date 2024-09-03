@@ -99,14 +99,23 @@ export class WhatsappWebClient {
         const userId = this.getUserIdFromClient(client);
         for (const chat of chats) {
             // await this.processChat(chat, chatId, userId);
-            winstonLogger.warn(`Últimos chats disponívels: ${JSON.stringify(chat)}`);
+            winstonLogger.warn(`Chat ID: ${JSON.stringify(chat.id)}`);
         }
         for (const message of messages) {
             const remoteId = message.key.remoteJid;
             const chat = chats.find(chat => chat.id === remoteId);
+
+            let profilePictureUrl = '';
+            try {
+                profilePictureUrl = await client.profilePictureUrl(remoteId);
+            } catch (error) {
+                winstonLogger.error(`Erro ao obter a URL da imagem de perfil para ${remoteId}: ${error.message}`);
+            }            
+            message.profilePictureUrl = profilePictureUrl;
+
             if (chat) {
                 await processSingleMessage(message, remoteId, this.messageModel, chat, userId);
-                winstonLogger.info(`Mensagem fora do chat salva para o chat ${remoteId}: ${JSON.stringify(message)}`);
+                winstonLogger.info(`Mensagem fora do chat salva para o chat ${remoteId}}`);
             } else {
                 winstonLogger.warn(`Nenhum chat encontrado para a mensagem com remoteId: ${remoteId}`);
             }

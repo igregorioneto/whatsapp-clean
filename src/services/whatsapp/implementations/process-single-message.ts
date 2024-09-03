@@ -5,6 +5,7 @@ export default async function processSingleMessage(message: any, chatId: string,
       key: { id: string, remoteJid: string, fromMe?: boolean };
       message: { conversation?: string };
       messageTimestamp?: { low: number, unsigned: boolean };
+      profilePictureUrl: string;
   };
 
   if (
@@ -29,7 +30,7 @@ export default async function processSingleMessage(message: any, chatId: string,
           messageStatus: chat?.messageStatus || '',
           lastMessageTime: chat?.lastMessageTime || '',
           newMessagesAmount: chat?.newMessagesAmount || 0,
-          profilePictureUrl: '',
+          profilePictureUrl: messageWithKey.profilePictureUrl || '',
           userId: userId ? `${userId}@s.whatsapp.net` : ''
       });
   }
