@@ -30,6 +30,8 @@ export async function saveMessageToMongo(messageModel: Model<MongoMessage>, mess
           messageStatus: messageInfo.messageStatus || 'Recebido',
           lastMessageTime: messageInfo.lastMessageTime || new Date().toISOString(),
           newMessagesAmount: messageInfo.newMessagesAmount || 1,   // Placeholder, ajustar conforme necessário
+          name: messageInfo.name || '',
+          profilePictureUrl: messageInfo.profilePictureUrl || '',
           userId: messageInfo.userId || ''
       });
       // Salvar a nova mensagem no banco de dados

@@ -98,9 +98,17 @@ export class WhatsappWebClient {
         const { chats, messages, contacts } = event;
         const userId = this.getUserIdFromClient(client);
         for (const chat of chats) {
-            await this.processChat(chat, chatId, userId);
-            for (const message of messages) {
-                await processSingleMessage(message, chatId, this.messageModel, chat);
+            // await this.processChat(chat, chatId, userId);
+            winstonLogger.warn(`Últimos chats disponívels: ${JSON.stringify(chat)}`);
+        }
+        for (const message of messages) {
+            const remoteId = message.key.remoteJid;
+            const chat = chats.find(chat => chat.id === remoteId);
+            if (chat) {
+                await processSingleMessage(message, remoteId, this.messageModel, chat, userId);
+                winstonLogger.info(`Mensagem fora do chat salva para o chat ${remoteId}: ${JSON.stringify(message)}`);
+            } else {
+                winstonLogger.warn(`Nenhum chat encontrado para a mensagem com remoteId: ${remoteId}`);
             }
         }
         for (const contact of contacts) {

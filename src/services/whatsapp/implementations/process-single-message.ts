@@ -30,7 +30,7 @@ export default async function processSingleMessage(message: any, chatId: string,
           lastMessageTime: chat?.lastMessageTime || '',
           newMessagesAmount: chat?.newMessagesAmount || 0,
           profilePictureUrl: '',
-          userId: chatId ? `${chatId}@s.whatsapp.net` : ''
+          userId: userId ? `${userId}@s.whatsapp.net` : ''
       });
   }
 }

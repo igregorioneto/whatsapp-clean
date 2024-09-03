@@ -61,7 +61,7 @@ export async function getAllMessages(
       messageStatus: group.lastMessage.messageStatus,
       lastMessageTime: group.lastMessage.lastMessageTime,
       newMessagesAmount: group.lastMessage.newMessagesAmount,
-      avatar: "",
+      avatar: group.lastMessage.profilePictureUrl,
       isDelivered: group.lastMessage.isDelivered,
       isMine: group.lastMessage.isMine,
       isViewed: group.lastMessage.isViewed,
