@@ -7,7 +7,12 @@ export default async function processSingleMessage(message: any, chatId: string,
       messageTimestamp?: { low: number, unsigned: boolean };
   };
 
-  if (messageWithKey.key && messageWithKey.key.id && messageWithKey.key.remoteJid) {
+  if (
+    messageWithKey.key && 
+    messageWithKey.key.id && 
+    messageWithKey.key.remoteJid &&
+    messageWithKey.message && 
+    messageWithKey.message.conversation) {
       await saveMessageToMongo(messageModel, {
           chatId: messageWithKey.key.remoteJid,
           messageId: messageWithKey.key.id,
@@ -24,6 +29,7 @@ export default async function processSingleMessage(message: any, chatId: string,
           messageStatus: chat?.messageStatus || '',
           lastMessageTime: chat?.lastMessageTime || '',
           newMessagesAmount: chat?.newMessagesAmount || 0,
+          profilePictureUrl: '',
           userId: chatId ? `${chatId}@s.whatsapp.net` : ''
       });
   }

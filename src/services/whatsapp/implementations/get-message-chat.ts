@@ -19,7 +19,14 @@ export async function getMessages(
     .countDocuments({ chatId: chatId + '@s.whatsapp.net', userId: numberUserIntegration + '@s.whatsapp.net' });
   winstonLogger.info(`Mensagens carregadas do getMessages: ${JSON.stringify(messages)}`);
   return {
-    data: messages,
+    data: messages.map(group => ({
+      id: group._id, 
+      message: group.body,
+      isMine: group.isMine,
+      isViewed: group.isViewed,
+      isDelivered: group.isDelivered,
+      hour: group.hour
+    })),
     currentPage: page,
     totalPages: Math.ceil(totalMessages / limit),
     totalMessages,

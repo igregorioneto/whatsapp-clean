@@ -44,15 +44,29 @@ export async function getAllMessages(
         $group: {
           _id: "$from",
           lastMessage: { $first: "$$ROOT" }
-        }
+        },        
       },
       { $count: "total" }
     ])
     .exec()
     .then(result => (result.length > 0 ? result[0].total : 0));
-
+  console.log(messages)
   return {
-    data: messages.map(group => group.lastMessage),
+    data: messages.map(group => ({
+      id: group._id, 
+      userStatus: group.lastMessage.userStatus,
+      name: group.lastMessage.name, 
+      lastMessage: group.lastMessage.body,
+      type: group.lastMessage.type,
+      messageStatus: group.lastMessage.messageStatus,
+      lastMessageTime: group.lastMessage.lastMessageTime,
+      newMessagesAmount: group.lastMessage.newMessagesAmount,
+      avatar: "",
+      isDelivered: group.lastMessage.isDelivered,
+      isMine: group.lastMessage.isMine,
+      isViewed: group.lastMessage.isViewed,
+      phoneNumber: group.lastMessage.from
+    })),
     currentPage: page,
     totalPages: Math.ceil(totalMessages / limit),
     totalMessages,

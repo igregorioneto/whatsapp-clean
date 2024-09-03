@@ -90,7 +90,7 @@ export class WhatsappWebClient {
         if (upsert.type === 'notify') {
             for (const msg of upsert.messages) {
                 await processSingleMessage(msg, chatId, this.messageModel);
-            }
+            }             
         }
     }
 
@@ -99,12 +99,10 @@ export class WhatsappWebClient {
         const userId = this.getUserIdFromClient(client);
         for (const chat of chats) {
             await this.processChat(chat, chatId, userId);
+            for (const message of messages) {
+                await processSingleMessage(message, chatId, this.messageModel, chat);
+            }
         }
-
-        for (const message of messages) {
-            await processSingleMessage(message, chatId, this.messageModel);
-        }
-
         for (const contact of contacts) {
             winstonLogger.info(`Contact: ${JSON.stringify(contact)}`);
         }
@@ -113,7 +111,7 @@ export class WhatsappWebClient {
     private async processChat(chat: any, chatId: string, userId: string) {
         if (Array.isArray(chat.messages)) {
             for (const message of chat.messages) {
-                await processSingleMessage(message, chatId, chat, userId);
+                await processSingleMessage(message, chatId, this.messageModel, chat, userId);
             }
         } else {
             winstonLogger.error(`Expected an array for chat.messages but got: ${JSON.stringify(chat.messages)}`);
