@@ -26,7 +26,7 @@ export async function saveMessageToMongo(messageModel: Model<MongoMessage>, mess
           isDelivered: messageInfo.isDelivered || false, // Adicionar lógica para status de entrega
           hour: messageInfo.hour || new Date().toLocaleTimeString(),
           userStatus: messageInfo.userStatus || 'online',  // Placeholder, ajustar conforme necessário
-          type: messageInfo.type || 'Comercial',      // Placeholder, ajustar conforme necessário
+          type: messageInfo.type || 'Sem setor',      // Placeholder, ajustar conforme necessário
           messageStatus: messageInfo.messageStatus || 'Recebido',
           lastMessageTime: messageInfo.lastMessageTime || new Date().toISOString(),
           newMessagesAmount: messageInfo.newMessagesAmount || 1,   // Placeholder, ajustar conforme necessário

@@ -50,7 +50,6 @@ export async function getAllMessages(
     ])
     .exec()
     .then(result => (result.length > 0 ? result[0].total : 0));
-  console.log(messages)
   return {
     data: messages.map(group => ({
       id: group._id, 
@@ -65,7 +64,8 @@ export async function getAllMessages(
       isDelivered: group.lastMessage.isDelivered,
       isMine: group.lastMessage.isMine,
       isViewed: group.lastMessage.isViewed,
-      phoneNumber: group.lastMessage.from
+      phoneNumber: group.lastMessage.from.split('@')[0],
+      userId: group.lastMessage.userId.split('@')[0]
     })),
     currentPage: page,
     totalPages: Math.ceil(totalMessages / limit),

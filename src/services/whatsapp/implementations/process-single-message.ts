@@ -3,7 +3,7 @@ import { saveMessageToMongo } from "./save-message-chat";
 export default async function processSingleMessage(message: any, chatId: string, messageModel: any, chat?: any, userId?: string) {
   const messageWithKey = message as unknown as {
       key: { id: string, remoteJid: string, fromMe?: boolean };
-      message: { conversation?: string };
+      message: { conversation?: string; extendedTextMessage?: any };
       messageTimestamp?: { low: number, unsigned: boolean };
       profilePictureUrl: string;
   };
@@ -13,11 +13,12 @@ export default async function processSingleMessage(message: any, chatId: string,
     messageWithKey.key.id && 
     messageWithKey.key.remoteJid &&
     messageWithKey.message && 
-    messageWithKey.message.conversation) {
+    messageWithKey.key && 
+    (messageWithKey.message.conversation || (messageWithKey.message.extendedTextMessage && messageWithKey.message.extendedTextMessage.text))) {
       await saveMessageToMongo(messageModel, {
           chatId: messageWithKey.key.remoteJid,
           messageId: messageWithKey.key.id,
-          body: messageWithKey.message?.conversation || '',
+          body: messageWithKey.message?.conversation || messageWithKey.message.extendedTextMessage.text || '',
           from: messageWithKey.key.remoteJid || '',
           timestamp: messageWithKey.messageTimestamp?.low ? new Date(messageWithKey.messageTimestamp?.low * 1000) : new Date(),
           isMine: messageWithKey.key.fromMe || false,

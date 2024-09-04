@@ -12,12 +12,12 @@ export async function getMessages(
   const skip = (page - 1) * limit;
   const messages = await messageModel
     .find({ chatId: chatId + '@s.whatsapp.net', userId: numberUserIntegration + '@s.whatsapp.net' })
+    .sort({ "timestamp": -1 })
     .skip(skip)
     .limit(limit)
     .exec();
   const totalMessages = await messageModel
     .countDocuments({ chatId: chatId + '@s.whatsapp.net', userId: numberUserIntegration + '@s.whatsapp.net' });
-  winstonLogger.info(`Mensagens carregadas do getMessages: ${JSON.stringify(messages)}`);
   return {
     data: messages.map(group => ({
       id: group._id, 
@@ -25,7 +25,8 @@ export async function getMessages(
       isMine: group.isMine,
       isViewed: group.isViewed,
       isDelivered: group.isDelivered,
-      hour: group.hour
+      hour: group.hour,
+      userId: group.userId.split('@')[0]
     })),
     currentPage: page,
     totalPages: Math.ceil(totalMessages / limit),

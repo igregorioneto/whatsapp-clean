@@ -40,16 +40,16 @@ export class WhatsappWebClient {
         }
     }
 
-    private async registerEventHandler(client: any, chatId: string) {
+    private async registerEventHandler(client: any, numberIntegrated: string) {
         client.ev.process(async (events) => {
             if (events['connection.update']) {
-                await this.handleConnectionUpdate(client, events['connection.update'], chatId);
+                await this.handleConnectionUpdate(client, events['connection.update'], numberIntegrated);
             }
             if (events['messages.upsert']) {
-                await this.handleMessageUpsert(events['messages.upsert'], chatId);
+                await this.handleMessageUpsert(client, events['messages.upsert'], numberIntegrated);
             }
             if (events['messaging-history.set']) {
-                await this.handleMessagingHistorySet(client, events['messaging-history.set'], chatId);
+                await this.handleMessagingHistorySet(client, events['messaging-history.set'], numberIntegrated);
             }
         })
     }
@@ -86,15 +86,33 @@ export class WhatsappWebClient {
         }
     }
 
-    private async handleMessageUpsert(upsert: any, chatId) {
-        if (upsert.type === 'notify') {
-            for (const msg of upsert.messages) {
-                await processSingleMessage(msg, chatId, this.messageModel);
-            }             
+    private async handleMessageUpsert(client: any, upsert: any, numberIntegrated: string) {
+        for (const msg of upsert.messages) {
+            const remotedJid = msg.key.remoteJid;
+            if (!remotedJid.endsWith('@s.whatsapp.net')) {
+                winstonLogger.warn(`Ignorado mensagem do ${remotedJid}`);
+                continue;
+            }
+            let profilePictureUrl = '';
+            let chatDetails = {
+                userStatus: '',
+                name: '',
+                type: '',
+                messageStatus: '',
+                lastMessageTime: '',
+                newMessagesAmount: 0
+            };
+            try {
+                profilePictureUrl = await client.profilePictureUrl(remotedJid);
+            } catch (error) {
+                winstonLogger.error(`Erro ao obter a URL da imagem de perfil para ${remotedJid}: ${error.message}`);
+            }
+            msg.profilePictureUrl = profilePictureUrl;
+            await processSingleMessage(msg, remotedJid, this.messageModel, chatDetails, numberIntegrated);
         }
     }
 
-    private async handleMessagingHistorySet(client: any, event: any,chatId: string) {
+    private async handleMessagingHistorySet(client: any, event: any, chatId: string) {
         const { chats, messages, contacts } = event;
         const userId = this.getUserIdFromClient(client);
         for (const chat of chats) {
@@ -105,12 +123,17 @@ export class WhatsappWebClient {
             const remoteId = message.key.remoteJid;
             const chat = chats.find(chat => chat.id === remoteId);
 
+            if (!remoteId.endsWith('@s.whatsapp.net')) {
+                winstonLogger.warn(`Ignorado mensagem do ${remoteId}`);
+                continue;
+            }
+
             let profilePictureUrl = '';
             try {
                 profilePictureUrl = await client.profilePictureUrl(remoteId);
             } catch (error) {
                 winstonLogger.error(`Erro ao obter a URL da imagem de perfil para ${remoteId}: ${error.message}`);
-            }            
+            }
             message.profilePictureUrl = profilePictureUrl;
 
             if (chat) {
