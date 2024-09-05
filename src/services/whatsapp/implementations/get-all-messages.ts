@@ -57,7 +57,9 @@ export async function getAllMessages(
     data: messages.map(group => ({
       id: group._id,
       userStatus: group.lastMessage.userStatus,
-      name: group.lastMessage.name || group.lastMessage.from.split('@')[0],
+        name: group.lastMessage.name.includes('@') 
+          ? group.lastMessage.name.split('@')[0]
+          : (group.lastMessage.name || group.lastMessage.from.split('@')[0]),
       lastMessage: formatMessage(group.lastMessage.body),
       type: group.lastMessage.type,
       messageStatus: group.lastMessage.messageStatus,
