@@ -2,7 +2,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Message as MongoMessage } from '../../../models/message.schema';
 import makeWASocket, { DisconnectReason, useMultiFileAuthState } from '@whiskeysockets/baileys';
-import { saveMessageToMongo } from './save-message-chat';
 import { generateQrCode } from './qr-code-generate';
 import { clearAuthState } from 'src/utils/clean-auth-state';
 import winstonLogger from 'src/config/winston.config';
@@ -51,7 +50,51 @@ export class WhatsappWebClient {
             if (events['messaging-history.set']) {
                 await this.handleMessagingHistorySet(client, events['messaging-history.set'], numberIntegrated);
             }
+            if (events['messages.update']) {
+                await this.updateViewMessage(client, events['messages.update'], numberIntegrated);
+            }
         })
+
+        client.ev.on('presence.update', async (chat) => {
+            await this.updatePresenceSubscribe(client, chat, numberIntegrated);
+        });
+    }
+
+    private async updateViewMessage(client: any, updates: any, numberIntegrated: string) {
+        try {
+            for (const update of updates) {
+                const { key, update: updateStatus } = update;
+                const query = { userId: numberIntegrated + '@s.whatsapp.net', chatId: key.remoteJid };
+                if (updateStatus.status === 3 || updateStatus.status === 4) {
+                    await this.messageModel
+                        .updateMany(
+                            query,
+                            { $set: { isDelivered: true, isViewed: true, newMessagesAmount: 0 }}
+                        );
+                    winstonLogger.info(`Mensagem entregue ${numberIntegrated} ${key.remoteJid}`);
+                }
+            }
+        } catch (error) {
+            winstonLogger.error(`Erro em relação aos status do message: ${error.message}`);
+        }
+    }
+
+    private async updatePresenceSubscribe(client: any, chat: any, numberIntegrated: string) {
+        try {
+            const chatId = chat.id || Object.keys(chat.presences)[0];
+            const lastKnownPresence = chat.presences[chatId]?.lastKnownPresence;
+            if (chatId && lastKnownPresence) {
+                await this.messageModel
+                    .updateMany(
+                        { userId: numberIntegrated + '@s.whatsapp.net', chatId: chatId },
+                        { userStatus: lastKnownPresence }
+                    );
+                await client.presenceSubscribe(chatId);
+                winstonLogger.info(`Status do usuário ${chatId} atualizado para ${lastKnownPresence}`);
+            }
+        } catch (error) {
+            winstonLogger.error(`Erro ao atualizar status de presença: ${error.message}`);
+        }
     }
 
     private async handleConnectionUpdate(client: any, update: any, chatId: string) {
@@ -100,10 +143,11 @@ export class WhatsappWebClient {
                 type: '',
                 messageStatus: '',
                 lastMessageTime: '',
-                newMessagesAmount: 0
+                newMessagesAmount: 1
             };
             try {
                 profilePictureUrl = await client.profilePictureUrl(remotedJid);
+                chatDetails.userStatus = await client.presenceSubscribe(remotedJid);
             } catch (error) {
                 winstonLogger.error(`Erro ao obter a URL da imagem de perfil para ${remotedJid}: ${error.message}`);
             }
@@ -131,6 +175,7 @@ export class WhatsappWebClient {
             let profilePictureUrl = '';
             try {
                 profilePictureUrl = await client.profilePictureUrl(remoteId);
+                chat.userStatus = await client.presenceSubscribe(remoteId);
             } catch (error) {
                 winstonLogger.error(`Erro ao obter a URL da imagem de perfil para ${remoteId}: ${error.message}`);
             }

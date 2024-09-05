@@ -22,16 +22,17 @@ export async function saveMessageToMongo(messageModel: Model<MongoMessage>, mess
           from: messageInfo.from || 'unknown',
           timestamp: new Date(messageInfo.timestamp),
           isMine: messageInfo.isMine || false,
-          isViewed: messageInfo.isViewed || false, // Adicionar lógica para visualizar status
-          isDelivered: messageInfo.isDelivered || false, // Adicionar lógica para status de entrega
+          isViewed: messageInfo.isViewed || false,
+          isDelivered: messageInfo.isDelivered || true,
           hour: messageInfo.hour || new Date().toLocaleTimeString(),
-          userStatus: messageInfo.userStatus || 'online',  // Placeholder, ajustar conforme necessário
+          userStatus: messageInfo.userStatus || 'unavailable',
           type: messageInfo.type || 'Sem setor',      // Placeholder, ajustar conforme necessário
           messageStatus: messageInfo.messageStatus || 'Recebido',
           lastMessageTime: messageInfo.lastMessageTime || new Date().toISOString(),
-          newMessagesAmount: messageInfo.newMessagesAmount || 1,   // Placeholder, ajustar conforme necessário
+          newMessagesAmount: messageInfo.newMessagesAmount || 0,
           name: messageInfo.name || '',
           profilePictureUrl: messageInfo.profilePictureUrl || '',
+          markedAsUnread: messageInfo?.markedAsUnread || false,
           userId: messageInfo.userId || ''
       });
       // Salvar a nova mensagem no banco de dados

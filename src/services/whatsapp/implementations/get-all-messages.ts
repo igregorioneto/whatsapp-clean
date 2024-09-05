@@ -1,6 +1,7 @@
 import { Model } from 'mongoose';
 import { Message as MongoMessage } from '../../../models/message.schema';
 import winstonLogger from 'src/config/winston.config';
+import { formatMessage } from 'src/utils/format-message';
 
 export interface GetAllMessageOptions {
   messageStatus?: string;
@@ -28,7 +29,8 @@ export async function getAllMessages(
       {
         $group: {
           _id: "$from",
-          lastMessage: { $first: "$$ROOT" }
+          lastMessage: { $first: "$$ROOT" },
+          totalUnread: { $sum: "$newMessagesAmount" }
         }
       },
       { $sort: { "lastMessage.timestamp": -1 } },
@@ -44,27 +46,29 @@ export async function getAllMessages(
         $group: {
           _id: "$from",
           lastMessage: { $first: "$$ROOT" }
-        },        
+        },
       },
       { $count: "total" }
     ])
     .exec()
     .then(result => (result.length > 0 ? result[0].total : 0));
+
   return {
     data: messages.map(group => ({
-      id: group._id, 
+      id: group._id,
       userStatus: group.lastMessage.userStatus,
-      name: group.lastMessage.name, 
-      lastMessage: group.lastMessage.body,
+      name: group.lastMessage.name || group.lastMessage.from.split('@')[0],
+      lastMessage: formatMessage(group.lastMessage.body),
       type: group.lastMessage.type,
       messageStatus: group.lastMessage.messageStatus,
       lastMessageTime: group.lastMessage.lastMessageTime,
-      newMessagesAmount: group.lastMessage.newMessagesAmount,
+      newMessagesAmount: group.totalUnread,
       avatar: group.lastMessage.profilePictureUrl,
       isDelivered: group.lastMessage.isDelivered,
       isMine: group.lastMessage.isMine,
       isViewed: group.lastMessage.isViewed,
       phoneNumber: group.lastMessage.from.split('@')[0],
+      markedAsUnread: group.lastMessage.markedAsUnread,
       userId: group.lastMessage.userId.split('@')[0]
     })),
     currentPage: page,
