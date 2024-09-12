@@ -9,18 +9,11 @@ export interface GetAllMessageOptions {
 
 export async function getAllMessages(
   messageModel: Model<MongoMessage>,
-  numberUserIntegration: string,
-  page: number = 1,
-  limit: number = 10,
-  options: GetAllMessageOptions = {}
+  numberUserIntegration: string
 ) {
   winstonLogger.info(numberUserIntegration + '@s.whatsapp.net')
-  const skip = (page - 1) * limit;
 
   const matchFilter: any = { userId: numberUserIntegration + '@s.whatsapp.net' };
-  if (options.messageStatus) {
-    matchFilter.messageStatus = options.messageStatus;
-  }
 
   const messages = await messageModel
     .aggregate([
@@ -33,25 +26,9 @@ export async function getAllMessages(
           totalUnread: { $sum: "$newMessagesAmount" }
         }
       },
-      { $sort: { "lastMessage.timestamp": -1 } },
-      { $skip: skip },
-      { $limit: limit }
+      { $sort: { "lastMessage.timestamp": -1 } }
     ])
     .exec();
-
-  const totalMessages = await messageModel
-    .aggregate([
-      { $match: matchFilter },
-      {
-        $group: {
-          _id: "$from",
-          lastMessage: { $first: "$$ROOT" }
-        },
-      },
-      { $count: "total" }
-    ])
-    .exec()
-    .then(result => (result.length > 0 ? result[0].total : 0));
 
   return {
     data: messages.map(group => ({
@@ -71,10 +48,8 @@ export async function getAllMessages(
       isViewed: group.lastMessage.isViewed,
       phoneNumber: group.lastMessage.from.split('@')[0],
       markedAsUnread: group.lastMessage.markedAsUnread,
+      messageIsNew: group.lastMessage.messageIsNew,
       userId: group.lastMessage.userId.split('@')[0]
-    })),
-    currentPage: page,
-    totalPages: Math.ceil(totalMessages / limit),
-    totalMessages,
+    }))
   };
 }

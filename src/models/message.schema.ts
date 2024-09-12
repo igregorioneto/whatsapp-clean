@@ -18,6 +18,7 @@ export const MessageSchema = new Schema({
   newMessagesAmount: { type: Number, required: false },
   profilePictureUrl: { type: String, required: false },
   markedAsUnread: { type: String, required: false },
+  messageIsNew: { type: Boolean, required: false },
   userId: { type: String, required: false },
 });
 
@@ -39,5 +40,6 @@ export interface Message extends Document {
   newMessagesAmount?: number;
   profilePictureUrl?: string;
   markedAsUnread?: boolean;
+  messageIsNew?: boolean;
   userId?: string;
 }

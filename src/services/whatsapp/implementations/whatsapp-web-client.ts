@@ -152,6 +152,16 @@ export class WhatsappWebClient {
                 winstonLogger.error(`Erro ao obter a URL da imagem de perfil para ${remotedJid}: ${error.message}`);
             }
             msg.profilePictureUrl = profilePictureUrl;
+            if (!msg.key.fromMe) {
+                msg.messageIsNew = true;
+            } else {
+                await this.messageModel
+                    .updateMany(
+                        { userId: numberIntegrated + '@s.whatsapp.net', chatId: remotedJid },
+                        { messageIsNew: false, newMessagesAmount: 0 }
+                    );
+            }
+            
             await processSingleMessage(msg, remotedJid, this.messageModel, chatDetails, numberIntegrated);
         }
     }

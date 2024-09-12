@@ -54,9 +54,9 @@ export class WhatsappService implements OnModuleInit {
     return await getMessages(this.messageModel, numberIntegration, chatId, page, limit);
   }
 
-  async getAllMessages(chatId: string, page: number = 1, limit: number = 10, options: GetAllMessageOptions = {}) {
+  async getAllMessages(chatId: string) {
     const numberIntegration = this.numberIntegration.getNumberIntegration(chatId);
-    return await getAllMessages(this.messageModel, numberIntegration, page, limit, options);
+    return await getAllMessages(this.messageModel, numberIntegration);
   }
 
   async getQrCodeImageUrl(chatId: string): Promise<string | null> {

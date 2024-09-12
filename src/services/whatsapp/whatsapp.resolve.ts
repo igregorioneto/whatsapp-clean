@@ -106,13 +106,10 @@ export class WhatsappResolver {
 
   @Query(() => GraphQLJSONObject)
   async getAllMessages(
-    @Args('chatId') chatId: string,
-    @Args('page', { type: () => Number, defaultValue: 1 }) page?: number, 
-    @Args('limit', { type: () => Number, defaultValue: 10 }) limit?: number,
-    @Args('options', { type: () => GetAllMessageOptions, defaultValue: 10 }) options?: GetAllMessageOptions
-  ) {
+    @Args('chatId') chatId: string
+    ) {
     try {
-      const result = await this.whatsappService.getAllMessages(chatId, page, limit, options);
+      const result = await this.whatsappService.getAllMessages(chatId);
       return {...result};
     } catch (error) {
       console.error('Erro ao buscar todas as mensagens:', error);

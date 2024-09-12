@@ -33,6 +33,7 @@ export async function saveMessageToMongo(messageModel: Model<MongoMessage>, mess
           name: messageInfo.name || '',
           profilePictureUrl: messageInfo.profilePictureUrl || '',
           markedAsUnread: messageInfo?.markedAsUnread || false,
+          messageIsNew: messageInfo?.messageIsNew || false,
           userId: messageInfo.userId || ''
       });
       // Salvar a nova mensagem no banco de dados
