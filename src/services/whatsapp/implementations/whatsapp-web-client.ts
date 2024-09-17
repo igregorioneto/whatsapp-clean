@@ -69,7 +69,7 @@ export class WhatsappWebClient {
                     await this.messageModel
                         .updateMany(
                             query,
-                            { $set: { isDelivered: true, isViewed: true, newMessagesAmount: 0 }}
+                            { $set: { isDelivered: true, isViewed: true, newMessagesAmount: 0 } }
                         );
                     winstonLogger.info(`Mensagem entregue ${numberIntegrated} ${key.remoteJid}`);
                 }
@@ -147,9 +147,15 @@ export class WhatsappWebClient {
             };
             try {
                 profilePictureUrl = await client.profilePictureUrl(remotedJid);
+            } catch (error) {
+                profilePictureUrl = '';
+                winstonLogger.error(`Erro ao obter a URL da imagem de perfil para ${remotedJid}: ${error.message}`);
+            }
+            try {
                 chatDetails.userStatus = await client.presenceSubscribe(remotedJid);
             } catch (error) {
-                winstonLogger.error(`Erro ao obter a URL da imagem de perfil para ${remotedJid}: ${error.message}`);
+                chatDetails.userStatus = 'available';
+                winstonLogger.error(`Erro ao obter o status de login do usuario ${remotedJid}: ${error.message}`);
             }
             msg.profilePictureUrl = profilePictureUrl;
             if (!msg.key.fromMe) {
@@ -161,7 +167,7 @@ export class WhatsappWebClient {
                         { messageIsNew: false, newMessagesAmount: 0 }
                     );
             }
-            
+
             await processSingleMessage(msg, remotedJid, this.messageModel, chatDetails, numberIntegrated);
         }
     }
@@ -185,13 +191,21 @@ export class WhatsappWebClient {
             let profilePictureUrl = '';
             try {
                 profilePictureUrl = await client.profilePictureUrl(remoteId);
-                chat.userStatus = await client.presenceSubscribe(remoteId);
             } catch (error) {
+                profilePictureUrl = '';
                 winstonLogger.error(`Erro ao obter a URL da imagem de perfil para ${remoteId}: ${error.message}`);
             }
-            message.profilePictureUrl = profilePictureUrl;
 
             if (chat) {
+                try {
+                    chat.userStatus = await client.presenceSubscribe(remoteId);
+                } catch (error) {
+                    chat.userStatus = 'available';
+                    winstonLogger.error(`Erro ao obter o status de login do usuario ${remoteId}: ${error.message}`);
+                }
+                
+                message.profilePictureUrl = profilePictureUrl;
+
                 await processSingleMessage(message, remoteId, this.messageModel, chat, userId);
                 winstonLogger.info(`Mensagem fora do chat salva para o chat ${remoteId}}`);
             } else {

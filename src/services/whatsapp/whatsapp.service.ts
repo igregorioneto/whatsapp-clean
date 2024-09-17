@@ -8,6 +8,7 @@ import { sendMessage } from './implementations/send-message';
 import { getMessages } from './implementations/get-message-chat';
 import { GetAllMessageOptions, getAllMessages } from './implementations/get-all-messages';
 import winstonLogger from 'src/config/winston.config';
+import { logout } from './implementations/logout';
 
 @Injectable()
 export class WhatsappService implements OnModuleInit {
@@ -62,5 +63,14 @@ export class WhatsappService implements OnModuleInit {
   async getQrCodeImageUrl(chatId: string): Promise<string | null> {
     const client = await this.createClientForUser(chatId);
     return await client.getQrCodeImageUrl(chatId);
+  }
+
+  async logout(numberIntegrated: string) {
+    const target = this.clientMap.get(numberIntegrated).getClients().get(numberIntegrated);
+    if (target) {
+      await logout(target, numberIntegrated);
+      return;
+    }
+    throw new Error(`Erro ao deslogar número integrado ${numberIntegrated}`); 
   }
 }

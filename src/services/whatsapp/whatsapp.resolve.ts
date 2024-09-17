@@ -141,4 +141,16 @@ export class WhatsappResolver {
       return 'Erro ao enviar mensagem.';
     }
   }
+
+  @Mutation(() => String)
+  async logout(
+    @Args('numberIntegrated') numberIntegrated: string,
+  ): Promise<string> {
+    try {
+      await this.whatsappService.logout(numberIntegrated);
+      return `Número integrado ${numberIntegrated} deslogado.`;
+    } catch (error) {
+      return `Erro ao deslogar número integrado ${numberIntegrated}: ${error.message}`;
+    }
+  }
 }
