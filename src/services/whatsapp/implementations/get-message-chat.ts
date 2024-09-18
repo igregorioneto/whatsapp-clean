@@ -26,7 +26,9 @@ export async function getMessages(
       isViewed: group.isViewed,
       isDelivered: group.isDelivered,
       hour: group.hour,
-      userId: group.userId.split('@')[0]
+      userId: group.userId.split('@')[0],
+      chatId: group.chatId.split('@')[0],
+      messageId: group.messageId
     })),
     currentPage: page,
     totalPages: Math.ceil(totalMessages / limit),

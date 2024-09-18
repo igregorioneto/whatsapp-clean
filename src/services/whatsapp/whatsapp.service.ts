@@ -9,6 +9,8 @@ import { getMessages } from './implementations/get-message-chat';
 import { GetAllMessageOptions, getAllMessages } from './implementations/get-all-messages';
 import winstonLogger from 'src/config/winston.config';
 import { logout } from './implementations/logout';
+import { deletingMessage } from './implementations/deleting-message';
+import { MessageInputDto } from './dto/message-input.dto';
 
 @Injectable()
 export class WhatsappService implements OnModuleInit {
@@ -72,5 +74,22 @@ export class WhatsappService implements OnModuleInit {
       return;
     }
     throw new Error(`Erro ao deslogar número integrado ${numberIntegrated}`); 
+  }
+
+  async deletingMessage(
+    numberIntegrated: string,
+    messages: [MessageInputDto]
+  ) {
+    const target = this.clientMap.get(numberIntegrated).getClients().get(numberIntegrated);
+    if (target) {
+      await deletingMessage(
+        target, 
+        this.messageModel, 
+        numberIntegrated,
+        messages
+      );
+      return;
+    }
+    throw new Error(`Erro deletar mensagem do numero`); 
   }
 }

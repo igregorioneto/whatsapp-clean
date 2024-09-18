@@ -2,6 +2,7 @@ import { Resolver, Query, Args, Mutation, InputType, Field, ObjectType } from '@
 import { WhatsappService } from './whatsapp.service';
 import { GraphQLJSONObject } from 'graphql-type-json';
 import { IntegrationResult } from './integration-type';
+import { MessageInputDto } from './dto/message-input.dto';
 
 @InputType()
 export class GetAllMessageOptions {
@@ -151,6 +152,22 @@ export class WhatsappResolver {
       return `Número integrado ${numberIntegrated} deslogado.`;
     } catch (error) {
       return `Erro ao deslogar número integrado ${numberIntegrated}: ${error.message}`;
+    }
+  }
+
+  @Mutation(() => String)
+  async deletingMessage(
+    @Args('numberIntegrated') numberIntegrated: string,
+    @Args({ name: 'messages', type: () => [MessageInputDto] }) messages: [MessageInputDto],
+  ): Promise<string> {
+    try {
+      await this.whatsappService.deletingMessage(
+        numberIntegrated,
+        messages
+      );
+      return `Mensagem deletada com sucesso!`;
+    } catch (error) {
+      return `Erro ao deletar mensagem: ${error.message}`;
     }
   }
 }
